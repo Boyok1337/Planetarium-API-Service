@@ -24,7 +24,6 @@ class AstronomyShow(models.Model):
     description = models.TextField()
     show_theme = models.ManyToManyField(
         ShowTheme,
-        on_delete=models.CASCADE,
         related_name="astronomy_shows"
     )
 
@@ -36,8 +35,17 @@ class AstronomyShow(models.Model):
 
 
 class ShowSession(models.Model):
-    astronomy_show = ForeignKey(AstronomyShow, on_delete=models.CASCADE)
-    planetarium_dome = ForeignKey("PlanetariumDome", on_delete=models.SET_NULL, related_name="show_sessions")
+    astronomy_show = ForeignKey(
+        AstronomyShow,
+        on_delete=models.CASCADE,
+        related_name="show_sessions"
+    )
+    planetarium_dome = ForeignKey(
+        "PlanetariumDome",
+        on_delete=models.SET_NULL,
+        related_name="show_sessions",
+        null=True
+    )
     show_time = DateTimeField()
 
     class Meta:
@@ -66,13 +74,26 @@ class PlanetariumDome(models.Model):
 class Ticket(models.Model):
     row = models.PositiveIntegerField()
     seat = models.PositiveIntegerField()
-    show_session = models.ForeignKey(ShowSession, on_delete=models.CASCADE, related_name="tickets")
-    reservation = models.ForeignKey("Reservation", on_delete=models.SET_NULL, related_name="tickets")
+    show_session = models.ForeignKey(
+        ShowSession,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
+    reservation = models.ForeignKey(
+        "Reservation",
+        on_delete=models.SET_NULL,
+        related_name="tickets",
+        null=True
+    )
 
 
 class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reservations")
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="reservations"
+    )
 
     class Meta:
         ordering = ("-created_at",)
