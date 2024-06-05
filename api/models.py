@@ -24,7 +24,7 @@ class AstronomyShow(models.Model):
     description = models.TextField()
     show_theme = models.ManyToManyField(
         ShowTheme,
-        related_name="astronomy_shows"
+        related_name="astronomy_shows",
     )
 
     class Meta:
