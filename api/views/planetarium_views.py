@@ -1,9 +1,10 @@
 from rest_framework import viewsets
 
-from api.models import ShowTheme, AstronomyShow, ShowSession, PlanetariumDome
+from api.models import ShowTheme, AstronomyShow, ShowSession, PlanetariumDome, Ticket, Reservation
 from api.serializers.planetarium_serializers import ShowThemeSerializer, AstronomyShowSerializer, \
-    AstronomyShowReadSerializer, ShowSessionSerializer, ShowSessionReadSerializer, ShowSessionRetrieveSerializer, \
-    PlanetariumDomeSerializer
+    ShowSessionSerializer, ShowSessionListSerializer, ShowSessionRetrieveSerializer, \
+    PlanetariumDomeSerializer, TicketSerializer, TicketListSerializer, ReservationSerializer, \
+    ReservationCreateSerializer, AstronomyShowListSerializer
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -18,7 +19,7 @@ class AstronomyShowViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset
 
-        queryset.prefetch_related('show_theme')
+        queryset = queryset.prefetch_related('show_theme')
 
         return queryset
 
@@ -26,13 +27,13 @@ class AstronomyShowViewSet(viewsets.ModelViewSet):
         serializer_class = self.serializer_class
 
         if self.action == "list":
-            serializer_class = AstronomyShowReadSerializer
+            serializer_class = AstronomyShowListSerializer
 
         if self.action == "create":
             serializer_class = AstronomyShowSerializer
 
         if self.action == "retrieve":
-            serializer_class = AstronomyShowReadSerializer
+            serializer_class = AstronomyShowListSerializer
 
         return serializer_class
 
@@ -44,7 +45,7 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset
 
-        queryset.prefetch_related('astronomy_show', 'planetarium_dome')
+        queryset = queryset.select_related('astronomy_show', 'planetarium_dome')
 
         return queryset
 
@@ -52,7 +53,7 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
         serializer_class = self.serializer_class
 
         if self.action == "list":
-            serializer_class = ShowSessionReadSerializer
+            serializer_class = ShowSessionListSerializer
 
         if self.action == "create":
             serializer_class = ShowSessionSerializer
@@ -66,3 +67,52 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
 class PlanetariumDomeViewSet(viewsets.ModelViewSet):
     queryset = PlanetariumDome.objects.all()
     serializer_class = PlanetariumDomeSerializer
+
+
+class TicketViewSet(viewsets.ModelViewSet):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        queryset = queryset.select_related('show_session', 'reservation')
+
+        return queryset
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+
+        if self.action == "list":
+            serializer_class = TicketListSerializer
+
+        if self.action == "create":
+            serializer_class = TicketSerializer
+
+        if self.action == "retrieve":
+            serializer_class = TicketListSerializer
+
+        return serializer_class
+
+
+class ReservationViewSet(viewsets.ModelViewSet):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        queryset = queryset.select_related('user')
+
+        return queryset
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+
+        if self.action == "list":
+            serializer_class = ReservationSerializer
+
+        if self.action == "create":
+            serializer_class = ReservationCreateSerializer
+
+        return serializer_class
