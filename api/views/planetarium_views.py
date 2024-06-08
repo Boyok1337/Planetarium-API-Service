@@ -4,7 +4,7 @@ from api.models import ShowTheme, AstronomyShow, ShowSession, PlanetariumDome, T
 from api.serializers.planetarium_serializers import ShowThemeSerializer, AstronomyShowSerializer, \
     ShowSessionSerializer, ShowSessionListSerializer, ShowSessionRetrieveSerializer, \
     PlanetariumDomeSerializer, TicketSerializer, TicketListSerializer, ReservationSerializer, \
-    ReservationCreateSerializer, AstronomyShowListSerializer
+    ReservationCreateSerializer, AstronomyShowListSerializer, TicketRetrieveSerializer
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -90,7 +90,7 @@ class TicketViewSet(viewsets.ModelViewSet):
             serializer_class = TicketSerializer
 
         if self.action == "retrieve":
-            serializer_class = TicketListSerializer
+            serializer_class = TicketRetrieveSerializer
 
         return serializer_class
 

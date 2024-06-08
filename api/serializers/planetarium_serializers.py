@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.db import transaction
 
 from api.models import (
     ShowTheme,
@@ -40,7 +39,6 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
-    tickets = serializers.SerializerMethodField
 
     class Meta:
         model = Reservation
@@ -48,7 +46,6 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
             'id',
             'user',
             'created_at',
-            'tickets',
         )
 
     def get_tickets(self, obj):
@@ -161,10 +158,6 @@ class ShowSessionListSerializer(serializers.ModelSerializer):
             'show_time_formatted',
         )
 
-    # def get_show_time(self, obj):
-    #     show_time = obj.show_time.strftime('%Y-%m-%d %H:%M')
-    #     return show_time
-
 
 class ShowSessionRetrieveSerializer(serializers.ModelSerializer):
     astronomy_show = serializers.CharField(source='astronomy_show.title')
@@ -187,28 +180,68 @@ class ShowSessionRetrieveSerializer(serializers.ModelSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
-    show_session = serializers.SerializerMethodField
-    reservation = serializers.PrimaryKeyRelatedField(
-        queryset=Reservation.objects.all()
-    )
+    show_session_title = serializers.CharField(write_only=True)
+    show_session_time = serializers.DateTimeField(write_only=True)
+    reservation = serializers.BooleanField(write_only=True)
+    show_session = serializers.SerializerMethodField()
 
     class Meta:
         model = Ticket
         fields = (
             'id',
-            'show_session',
+            'show_session_title',
+            'show_session_time',
             'row',
             'seat',
             'reservation',
+            'show_session'
         )
 
+    def validate(self, data):
+        show_session_title = data.get('show_session_title')
+        show_session_time = data.get('show_session_time')
+
+        show_sessions = ShowSession.objects.filter(
+            astronomy_show__title=show_session_title,
+            show_time=show_session_time
+        )
+
+        if not show_sessions.exists():
+            raise serializers.ValidationError({'show_session': 'Show session with this title and time does not exist.'})
+        if show_sessions.count() > 1:
+            raise serializers.ValidationError(
+                {'show_session': 'Multiple show sessions with this title and time found. Please be more specific.'})
+
+        data['show_session'] = show_sessions.first()
+        return data
+
     def get_show_session(self, obj):
-        return obj.show_session.astronomy_show.title
+        show_session_serializer = ShowSessionSerializer(
+            instance=obj.show_session,
+            context=self.context
+        )
+        return show_session_serializer.data
+
+    def create(self, validated_data):
+        validated_data.pop('show_session_title')
+        validated_data.pop('show_session_time')
+
+        reservation_flag = validated_data.pop('reservation', False)
+        show_session = validated_data.pop('show_session')
+
+        ticket = Ticket.objects.create(show_session=show_session, **validated_data)
+
+        if reservation_flag:
+            user = self.context['request'].user
+            Reservation.objects.create(user=user)
+
+        return ticket
 
 
 class TicketListSerializer(serializers.ModelSerializer):
     show_session = serializers.CharField(source='show_session.astronomy_show.title', read_only=True)
     reservation = serializers.CharField(source='reservation.user', read_only=True)
+    show_time = serializers.CharField(source='show_session.show_time_formatted')
 
     class Meta:
         model = Ticket
@@ -218,4 +251,22 @@ class TicketListSerializer(serializers.ModelSerializer):
             'row',
             'seat',
             'reservation',
+            'show_time',
+        )
+
+
+class TicketRetrieveSerializer(serializers.ModelSerializer):
+    show_session = ShowSessionRetrieveSerializer()
+    reservation = serializers.CharField(source='reservation.user', read_only=True)
+    show_time = serializers.CharField(source='show_session.show_time_formatted')
+
+    class Meta:
+        model = Ticket
+        fields = (
+            'id',
+            'show_session',
+            'row',
+            'seat',
+            'reservation',
+            'show_time',
         )
