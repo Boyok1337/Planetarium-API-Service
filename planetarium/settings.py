@@ -142,7 +142,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'api.permissions.IsAdminOrIfAuthenticatedReadOnly',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.StandardResultsSetPagination',
 }
 
 SIMPLE_JWT = {
