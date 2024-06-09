@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 
 from django.core.exceptions import ValidationError
+from drf_spectacular.utils import extend_schema_view
 from rest_framework import viewsets, status
 from django.db.models import BooleanField, Case, When, Value
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -9,6 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.models import ShowTheme, AstronomyShow, ShowSession, PlanetariumDome, Ticket, Reservation
+from api.schemas import AstronomyShowSchema, ShowSessionSchema, PlanetariumDomeSchema, TicketSchema, ReservationSchema, \
+    ShowSessionUploadSchema
 from api.serializers.planetarium_serializers import ShowThemeSerializer, AstronomyShowSerializer, \
     ShowSessionSerializer, ShowSessionListSerializer, ShowSessionRetrieveSerializer, \
     PlanetariumDomeSerializer, TicketSerializer, TicketListSerializer, ReservationSerializer, \
@@ -21,6 +24,7 @@ class ShowThemeViewSet(viewsets.ModelViewSet):
     serializer_class = ShowThemeSerializer
 
 
+@extend_schema_view(list=AstronomyShowSchema.list)
 class AstronomyShowViewSet(viewsets.ModelViewSet):
     queryset = AstronomyShow.objects.all()
     serializer_class = AstronomyShowSerializer
@@ -54,6 +58,7 @@ class AstronomyShowViewSet(viewsets.ModelViewSet):
         return serializer_class
 
 
+@extend_schema_view(list=ShowSessionSchema.list)
 class ShowSessionViewSet(viewsets.ModelViewSet):
     queryset = ShowSession.objects.all()
     serializer_class = ShowSessionSerializer
@@ -103,6 +108,7 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
         return serializer_class
 
 
+@extend_schema_view(list=PlanetariumDomeSchema.list)
 class PlanetariumDomeViewSet(viewsets.ModelViewSet):
     queryset = PlanetariumDome.objects.all()
     serializer_class = PlanetariumDomeSerializer
@@ -158,6 +164,7 @@ class PlanetariumDomeViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+@extend_schema_view(list=TicketSchema.list)
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
@@ -187,6 +194,7 @@ class TicketViewSet(viewsets.ModelViewSet):
         return serializer_class
 
 
+@extend_schema_view(list=ReservationSchema.list)
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
@@ -225,6 +233,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
 class ShowSessionUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
+    @ShowSessionUploadSchema.show_session_upload_schema
     def post(self, request, *args, **kwargs):
         csv_file = request.FILES.get('file')
         if not csv_file:
@@ -254,7 +263,7 @@ class ShowSessionUploadView(APIView):
                         astronomy_show=serializer.validated_data['astronomy_show'],
                         planetarium_dome=serializer.validated_data['planetarium_dome'],
                         qs=ShowSession.objects.all(),
-                        instance=None  # Інстанція не передається, оскільки це новий запис
+                        instance=None
                     )
                 except ValidationError as e:
                     errors.append(str(e))
