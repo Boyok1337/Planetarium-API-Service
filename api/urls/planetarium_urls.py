@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework import routers
 
 from api.views.planetarium_views import ShowThemeViewSet, AstronomyShowViewSet, ShowSessionViewSet, \
-    PlanetariumDomeViewSet, TicketViewSet, ReservationViewSet
+    PlanetariumDomeViewSet, TicketViewSet, ReservationViewSet, ShowSessionUploadView
 
 router = routers.DefaultRouter()
 router.register('show_theme', ShowThemeViewSet, basename='show-theme')
@@ -14,6 +14,7 @@ router.register('reservation', ReservationViewSet, basename="reservation")
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('upload-show-sessions/', ShowSessionUploadView.as_view(), name='upload-show-sessions'),
 ]
 
 app_name = 'api'

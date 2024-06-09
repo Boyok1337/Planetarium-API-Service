@@ -1,11 +1,19 @@
-from rest_framework import viewsets
+import csv
+from datetime import datetime
+
+from django.core.exceptions import ValidationError
+from rest_framework import viewsets, status
 from django.db.models import BooleanField, Case, When, Value
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from api.models import ShowTheme, AstronomyShow, ShowSession, PlanetariumDome, Ticket, Reservation
 from api.serializers.planetarium_serializers import ShowThemeSerializer, AstronomyShowSerializer, \
     ShowSessionSerializer, ShowSessionListSerializer, ShowSessionRetrieveSerializer, \
     PlanetariumDomeSerializer, TicketSerializer, TicketListSerializer, ReservationSerializer, \
     ReservationCreateSerializer, AstronomyShowListSerializer, TicketRetrieveSerializer
+from api.validators import validate_show_time
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -212,3 +220,53 @@ class ReservationViewSet(viewsets.ModelViewSet):
             serializer_class = ReservationCreateSerializer
 
         return serializer_class
+
+
+class ShowSessionUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        csv_file = request.FILES.get('file')
+        if not csv_file:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+        if not csv_file.name.endswith('.csv'):
+            return Response({'error': 'This is not a CSV file'}, status=status.HTTP_400_BAD_REQUEST)
+
+        decoded_file = csv_file.read().decode('utf-8').splitlines()
+        reader = csv.DictReader(decoded_file)
+
+        sessions_created = []
+        errors = []
+
+        for row in reader:
+            serializer = ShowSessionSerializer(data=row)
+            if serializer.is_valid():
+                show_time_str = row['show_time']
+                try:
+                    show_time = datetime.strptime(show_time_str, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    errors.append('Invalid datetime format for show_time: {}'.format(show_time_str))
+                    continue
+
+                try:
+                    validate_show_time(
+                        show_time=show_time,
+                        astronomy_show=serializer.validated_data['astronomy_show'],
+                        planetarium_dome=serializer.validated_data['planetarium_dome'],
+                        qs=ShowSession.objects.all(),
+                        instance=None  # Інстанція не передається, оскільки це новий запис
+                    )
+                except ValidationError as e:
+                    errors.append(str(e))
+                    continue
+
+                show_session = serializer.save()
+                sessions_created.append(show_session)
+            else:
+                errors.append(serializer.errors)
+
+        if errors:
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'created_sessions': ShowSessionSerializer(sessions_created, many=True).data},
+                        status=status.HTTP_201_CREATED)
