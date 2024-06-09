@@ -120,12 +120,20 @@ class Ticket(models.Model):
         ordering = ("-reservation__created_at",)
 
     def __str__(self):
-        return (
-            f"{self.show_session.astronomy_show.title}, "
-            f"row: {self.row} - "
-            f"seat: {self.seat} - "
-            f"reservation: {self.reservation.user.username}"
-        )
+        if self.reservation:
+            return (
+                f"{self.show_session.astronomy_show.title}, "
+                f"row: {self.row} - "
+                f"seat: {self.seat} - "
+                f"reservation: {self.reservation.user.username}"
+            )
+        else:
+            return (
+                f"{self.show_session.astronomy_show.title}, "
+                f"row: {self.row} - "
+                f"seat: {self.seat} - "
+                "reservation: not reserved"
+            )
 
     @staticmethod
     def validate_seat_and_row(seat: int, row: int, num_seats: int, num_rows: int) -> None:
@@ -158,3 +166,6 @@ class Reservation(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.user.username} | {self.created_at}"
