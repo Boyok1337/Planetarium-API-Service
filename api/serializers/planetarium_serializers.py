@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import transaction
 
 from api.models import (
     ShowTheme,
@@ -67,14 +68,16 @@ class AstronomyShowSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         show_theme_data = validated_data.pop('show_theme')
-        astronomy_show = AstronomyShow.objects.create(**validated_data)
 
-        for show_theme_instance in show_theme_data:
-            if isinstance(show_theme_instance, ShowTheme):
-                astronomy_show.show_theme.add(show_theme_instance)
-            else:
-                show_theme = ShowTheme.objects.create(**show_theme_instance)
-                astronomy_show.show_theme.add(show_theme)
+        with transaction.atomic():
+            astronomy_show = AstronomyShow.objects.create(**validated_data)
+
+            for show_theme_instance in show_theme_data:
+                if isinstance(show_theme_instance, ShowTheme):
+                    astronomy_show.show_theme.add(show_theme_instance)
+                else:
+                    show_theme = ShowTheme.objects.create(**show_theme_instance)
+                    astronomy_show.show_theme.add(show_theme)
 
         return astronomy_show
 
@@ -182,7 +185,7 @@ class ShowSessionRetrieveSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     show_session_title = serializers.CharField(write_only=True)
     show_session_time = serializers.DateTimeField(write_only=True)
-    reservation = serializers.BooleanField(write_only=True)
+    reservation = serializers.BooleanField(write_only=True, allow_null=True)
     show_session = serializers.SerializerMethodField()
 
     class Meta:
@@ -229,11 +232,12 @@ class TicketSerializer(serializers.ModelSerializer):
         reservation_flag = validated_data.pop('reservation', False)
         show_session = validated_data.pop('show_session')
 
-        ticket = Ticket.objects.create(show_session=show_session, **validated_data)
+        with transaction.atomic():
+            ticket = Ticket.objects.create(show_session=show_session, **validated_data)
 
-        if reservation_flag:
-            user = self.context['request'].user
-            Reservation.objects.create(user=user)
+            if reservation_flag:
+                user = self.context['request'].user
+                Reservation.objects.create(user=user)
 
         return ticket
 
