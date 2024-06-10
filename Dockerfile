@@ -1,4 +1,4 @@
-FROM python:3.9.19-alpine3.20
+FROM python:3.12.4-slim-bullseye
 LABEL maintainer="andreboiko1@gmail.com"
 
 ENV PYTHONUNBUFFERED 1
