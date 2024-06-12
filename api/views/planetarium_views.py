@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema_view
 from rest_framework import viewsets, status
@@ -196,6 +198,10 @@ class TicketViewSet(viewsets.ModelViewSet):
             serializer_class = TicketRetrieveSerializer
 
         return serializer_class
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 @extend_schema_view(list=ReservationSchema.list)
