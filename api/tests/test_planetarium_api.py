@@ -7,19 +7,17 @@ from django.urls import reverse
 
 from api.models import ShowTheme, PlanetariumDome, AstronomyShow, ShowSession
 
-API_SHOW_THEME = 'api:show-theme-list'
-API_SHOW_SESSION = 'api:show-session-list'
-API_ASTRONOMY_SHOW = 'api:astronomy-show-list'
-API_PLANETARIUM_DOME = 'api:planetarium-dome-list'
-API_TICKET = 'api:ticket-list'
-API_RESERVATION = 'api:reservation-list'
-API_UPLOAD_SHOW_SESSION = 'api:upload-show-sessions'
+API_SHOW_THEME = "api:show-theme-list"
+API_SHOW_SESSION = "api:show-session-list"
+API_ASTRONOMY_SHOW = "api:astronomy-show-list"
+API_PLANETARIUM_DOME = "api:planetarium-dome-list"
+API_TICKET = "api:ticket-list"
+API_RESERVATION = "api:reservation-list"
+API_UPLOAD_SHOW_SESSION = "api:upload-show-sessions"
 
 
 def sample_show_theme(**params):
-    defaults = {
-        "name": "Sample Theme"
-    }
+    defaults = {"name": "Sample Theme"}
     defaults.update(params)
     return ShowTheme.objects.create(**defaults)
 
@@ -37,11 +35,7 @@ def sample_astronomy_show(**params):
 
 
 def sample_planetarium_dome(**params):
-    defaults = {
-        "name": "Sample Planetarium",
-        "rows": 10,
-        "seats_in_row": 10
-    }
+    defaults = {"name": "Sample Planetarium", "rows": 10, "seats_in_row": 10}
     defaults.update(params)
     return PlanetariumDome.objects.create(**defaults)
 
@@ -50,7 +44,7 @@ def sample_show_session(**params):
     defaults = {
         "astronomy_show": sample_astronomy_show(),
         "planetarium_dome": sample_planetarium_dome(),
-        "show_time": datetime.now() + timedelta(days=1)
+        "show_time": datetime.now() + timedelta(days=1),
     }
     defaults.update(params)
     return ShowSession.objects.create(**defaults)
@@ -111,13 +105,13 @@ class UnauthorizedAccessTests(TestCase):
 
     def test_unauthorized_access(self):
         endpoints = [
-            (API_SHOW_THEME, 'get'),
-            (API_ASTRONOMY_SHOW, 'get'),
-            (API_SHOW_SESSION, 'get'),
-            (API_PLANETARIUM_DOME, 'get'),
-            (API_TICKET, 'get'),
-            (API_RESERVATION, 'get'),
-            (API_UPLOAD_SHOW_SESSION, 'post'),
+            (API_SHOW_THEME, "get"),
+            (API_ASTRONOMY_SHOW, "get"),
+            (API_SHOW_SESSION, "get"),
+            (API_PLANETARIUM_DOME, "get"),
+            (API_TICKET, "get"),
+            (API_RESERVATION, "get"),
+            (API_UPLOAD_SHOW_SESSION, "post"),
         ]
 
         for endpoint, method in endpoints:

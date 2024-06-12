@@ -1,10 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import (
-    DateTimeField,
-    ForeignKey, UniqueConstraint
-)
+from django.db.models import DateTimeField, ForeignKey, UniqueConstraint
 
 from api.validators import validate_show_time
 
@@ -38,15 +35,13 @@ class AstronomyShow(models.Model):
 
 class ShowSession(models.Model):
     astronomy_show = ForeignKey(
-        AstronomyShow,
-        on_delete=models.CASCADE,
-        related_name="show_sessions"
+        AstronomyShow, on_delete=models.CASCADE, related_name="show_sessions"
     )
     planetarium_dome = ForeignKey(
         "PlanetariumDome",
         on_delete=models.SET_NULL,
         related_name="show_sessions",
-        null=True
+        null=True,
     )
     show_time = DateTimeField()
 
@@ -64,7 +59,7 @@ class ShowSession(models.Model):
             astronomy_show=self.astronomy_show,
             planetarium_dome=self.planetarium_dome,
             qs=qs,
-            instance=self
+            instance=self,
         )
 
     def save(self, *args, **kwargs) -> None:
@@ -78,7 +73,7 @@ class ShowSession(models.Model):
 
     @property
     def show_time_formatted(self):
-        return self.show_time.strftime('%Y-%m-%d %H:%M')
+        return self.show_time.strftime("%Y-%m-%d %H:%M")
 
 
 class PlanetariumDome(models.Model):
@@ -101,9 +96,7 @@ class Ticket(models.Model):
     row = models.PositiveIntegerField()
     seat = models.PositiveIntegerField()
     show_session = models.ForeignKey(
-        ShowSession,
-        on_delete=models.CASCADE,
-        related_name="tickets"
+        ShowSession, on_delete=models.CASCADE, related_name="tickets"
     )
     reservation = models.ForeignKey(
         "Reservation",
@@ -113,7 +106,9 @@ class Ticket(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=("show_session", "row", "seat"), name="unique_ticket")
+            UniqueConstraint(
+                fields=("show_session", "row", "seat"), name="unique_ticket"
+            )
         ]
         ordering = ("-reservation__created_at",)
 
@@ -134,7 +129,9 @@ class Ticket(models.Model):
             )
 
     @staticmethod
-    def validate_seat_and_row(seat: int, row: int, num_seats: int, num_rows: int) -> None:
+    def validate_seat_and_row(
+        seat: int, row: int, num_seats: int, num_rows: int
+    ) -> None:
         if seat > num_seats or seat < 0:
             raise ValidationError("Invalid seat")
 
@@ -146,7 +143,7 @@ class Ticket(models.Model):
             seat=self.seat,
             row=self.row,
             num_seats=self.show_session.planetarium_dome.seats_in_row,
-            num_rows=self.show_session.planetarium_dome.rows
+            num_rows=self.show_session.planetarium_dome.rows,
         )
 
     def save(self, *args, **kwargs) -> None:
@@ -157,9 +154,7 @@ class Ticket(models.Model):
 class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="reservations"
+        User, on_delete=models.CASCADE, related_name="reservations"
     )
 
     class Meta:

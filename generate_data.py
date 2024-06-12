@@ -4,7 +4,7 @@ import random
 import faker
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'planetarium.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "planetarium.settings")
 django.setup()
 
 from api.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession
@@ -65,9 +65,9 @@ def create_show_sessions():
         astronomy_show = random.choice(list(astronomy_shows))
         planetarium_dome = random.choice(list(planetarium_domes))
         while ShowSession.objects.filter(
-                show_time=show_time,
-                astronomy_show=astronomy_show,
-                planetarium_dome=planetarium_dome,
+            show_time=show_time,
+            astronomy_show=astronomy_show,
+            planetarium_dome=planetarium_dome,
         ).exists():
             show_time = fake.date_time_between(
                 start_date=start_date,

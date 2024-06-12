@@ -14,4 +14,6 @@ def validate_show_time(show_time, astronomy_show, planetarium_dome, qs, instance
     )
     one_hour = timedelta(hours=1)
     if qs.filter(show_time__gte=show_time - one_hour, show_time__lt=show_time).exists():
-        raise ValidationError("Show time must be at least 1 hour apart from the previous show time.")
+        raise ValidationError(
+            "Show time must be at least 1 hour apart from the previous show time."
+        )
