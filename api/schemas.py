@@ -1,4 +1,8 @@
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    OpenApiResponse
+)
 
 from api.serializers.planetarium_serializers import (
     AstronomyShowSerializer,
