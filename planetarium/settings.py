@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-igtmo(0r%ir+ug27xx3bua6f+tq0**lwp%dzvj(qha41%8ipd7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['planetarium']
 
 # Application definition
 

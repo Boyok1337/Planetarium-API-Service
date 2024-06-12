@@ -47,5 +47,19 @@ services:
     depends_on:
       - redis
 
+  telegram_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    depends_on:
+      - planetarium
+    command: >
+      sh -c "
+      python telegram_bot.py"
+
 volumes:
   my_db:

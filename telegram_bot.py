@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 import requests
 from telegram import Update
@@ -32,31 +33,41 @@ async def handle_email(update: Update, context: CallbackContext) -> int:
 
 async def send_email_request(update: Update, context: CallbackContext) -> int:
     email = context.user_data['email']
-    url = 'http://localhost:8000/api/planetarium/tickets-by-email/'
+    url = 'http://planetarium:8000/api/planetarium/tickets-by-email/'  # Use the service name as the hostname
     data = {'email': email}
 
-    try:
-        response = requests.post(url, data=data)
+    max_retries = 5
+    retry_delay = 5
 
-        if response.status_code in range(200, 300):
-            response_data = response.json()
-            if response_data.get('status') == 'success':
-                tickets = response_data.get('data', [])
-                html_response = "<b>API Response:</b>\n"
-                for ticket in tickets:
-                    html_response += (f"ID: {ticket['id']}, "
-                                      f"Row: {ticket['row']}, "
-                                      f"Seat: {ticket['seat']}, "
-                                      f"Show Session: {ticket['show_session_id']}, "
-                                      f"Reservation: {ticket['reservation_id']}\n")
-                await update.message.reply_text(html_response, parse_mode='HTML')
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(url, data=data)
+
+            if response.status_code in range(200, 300):
+                response_data = response.json()
+                if response_data.get('status') == 'success':
+                    tickets = response_data.get('data', [])
+                    html_response = "<b>API Response:</b>\n"
+                    for ticket in tickets:
+                        html_response += (f"ID: {ticket['id']}, "
+                                          f"Row: {ticket['row']}, "
+                                          f"Seat: {ticket['seat']}, "
+                                          f"Show Session: {ticket['show_session_id']}, "
+                                          f"Reservation: {ticket['reservation_id']}\n")
+                    await update.message.reply_text(html_response, parse_mode='HTML')
+                else:
+                    await update.message.reply_text(f'Error: {response_data.get("message", "Unknown error")}')
             else:
-                await update.message.reply_text(f'Error: {response_data.get("message", "Unknown error")}')
-        else:
-            await update.message.reply_text(
-                f'Error occurred while making a request to the API: {response.status_code} {response.text}')
-    except Exception as e:
-        await update.message.reply_text(f'Error occurred while making a request to the API: {str(e)}')
+                await update.message.reply_text(
+                    f'Error occurred while making a request to the API: {response.status_code} {response.text}')
+            break
+        except Exception as e:
+            if attempt < max_retries - 1:
+                await update.message.reply_text(f'Error occurred while making a request to the API: {str(e)}. Retrying...')
+                time.sleep(retry_delay)
+            else:
+                await update.message.reply_text(f'Error occurred while making a request to the API: {str(e)}. No more retries left.')
+                break
 
     await update.message.reply_text('Enter a new email address or /start to restart.')
     return EMAIL
