@@ -1,7 +1,11 @@
 import csv
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema_view
 from rest_framework import viewsets, status
 from django.db.models import BooleanField, Case, When, Value
@@ -279,3 +283,17 @@ class ShowSessionUploadView(APIView):
 
         return Response({'created_sessions': ShowSessionSerializer(sessions_created, many=True).data},
                         status=status.HTTP_201_CREATED)
+
+
+@csrf_exempt
+def get_tickets_by_email(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = get_user_model().objects.get(email=email)
+            tickets = Ticket.objects.filter(reservation_id=user.id)
+            ticket_data = list(tickets.values())
+            return JsonResponse({'status': 'success', 'data': ticket_data}, status=200)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
