@@ -113,20 +113,12 @@ class Ticket(models.Model):
         ordering = ("-reservation__created_at",)
 
     def __str__(self):
-        if self.reservation:
-            return (
-                f"{self.show_session.astronomy_show.title}, "
-                f"row: {self.row} - "
-                f"seat: {self.seat} - "
-                f"reservation: {self.reservation.user.username}"
-            )
-        else:
-            return (
-                f"{self.show_session.astronomy_show.title}, "
-                f"row: {self.row} - "
-                f"seat: {self.seat} - "
-                "reservation: not reserved"
-            )
+        return (
+            f"{self.show_session.astronomy_show.title}, "
+            f"row: {self.row} - "
+            f"seat: {self.seat} - "
+            f"reservation: {self.reservation.user.username if self.reservation else 'not reserved'}"
+        )
 
     @staticmethod
     def validate_seat_and_row(

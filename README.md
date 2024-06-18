@@ -13,7 +13,7 @@ This project was created specifically for a planetarium. It makes it easy to ope
 - Copy and rename the **.env.sample** file to **.env** 
 - Open the .env file and edit the environment variables 
 - Save the .env file securely 
-- Add the .env file to .gitignore
+- Make sure the .env file is in .gitignore
 
  On Windows:
 ```python

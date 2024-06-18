@@ -25,7 +25,6 @@ INSTALLED_APPS = [
     # External apps
     "rest_framework",
     "rest_framework_simplejwt",
-    # "debug_toolbar",
     "drf_spectacular",
     "django_redis",
     # User apps
@@ -55,7 +54,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "planetarium.urls"
